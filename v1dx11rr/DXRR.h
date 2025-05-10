@@ -59,6 +59,23 @@ public:
     ModeloRR* woodenWatchTower;
     ModeloRR* tree;
 
+	void DrawObjectOnTerrain(ModeloRR* objeto, float scale, float rotationY, char flag, float multiplier)
+	{
+		if (objeto == nullptr || terreno == nullptr)
+		{
+			return;
+		}
+
+
+		float objPosX = objeto->getPosX(); // *** Esto asume que ModeloRR tiene miembro 'posicion' ***
+		float objPosZ = objeto->getPosZ(); // *** Esto asume que ModeloRR tiene miembro 'posicion' ***
+
+		float objHeight = terreno->Superficie(objPosX, objPosZ);
+
+		// Llamar al método Draw del objeto, pasando la altura calculada
+		objeto->Draw(camara->vista, camara->proyeccion, objHeight, camara->posCam, scale, rotationY, flag, multiplier);
+	}
+
 	//COL
 	Objeto* caballo;
 	Objeto* colision;
@@ -96,18 +113,18 @@ public:
 		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"Assets/SkyDome.jpg");
 		billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 				//
-		fuente = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/FUENTE2.obj", L"Assets/MODELOS/FUENTE.png", L"Assets/MODELOS/FUENTE_SPEC2.png", 0, 0);
-		casa1 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA1.obj", L"Assets/MODELOS/CASA1.png", L"Assets/MODELOS/CASA1_SPEC.png", 0, 0);
-		casa2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA2.obj", L"Assets/MODELOS/CASA2.png", L"Assets/MODELOS/CASA2_SPEC.png", 0, 0);
-		ruins = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/RUINS.obj", L"Assets/MODELOS/RUINS.png", L"Assets/MODELOS/RUINS_SPEC.png", 0, 0);
-		tent = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TENT.obj", L"Assets/MODELOS/TENT2.png", L"Assets/MODELOS/RUINS_SPEC.png", 0, 0);
+		fuente = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/FUENTE2.obj", L"Assets/MODELOS/FUENTE.png", L"Assets/MODELOS/FUENTE_SPEC2.png", 20, 30);
+		casa1 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA1.obj", L"Assets/MODELOS/CASA1.png", L"Assets/MODELOS/CASA1_SPEC.png", -20, -30);
+		casa2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA2.obj", L"Assets/MODELOS/CASA2.png", L"Assets/MODELOS/CASA2_SPEC.png", 100, 0);
+		ruins = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/RUINS.obj", L"Assets/MODELOS/RUINS.png", L"Assets/MODELOS/RUINS_SPEC.png", 0, 40);
+		tent = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TENT.obj", L"Assets/MODELOS/TENT2.png", L"Assets/MODELOS/RUINS_SPEC.png", 20, -40);
 
         marijuana = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/MARIHUANA.obj", L"Assets/MODELOS/branchdiffuse.jpg", L"Assets/MODELOS/bump leaf.jpg", 0, 0);
         horse = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CABALLO.obj", L"Assets/MODELOS/textures/HORSE_COLOR.png", L"Assets/MODELOS/textures/HORSE_SPEC.png", 0, 20);
 
-        bronzeSword = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/Bronze_sword.obj", L"Assets/MODELOS/Bronze_sword_Specular.bmp", L"Assets/MODELOS/Bronze_sword_Diffuse.bmp", 0, 0);
-        woodenWatchTower = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/wooden watch tower2.obj", L"Assets/MODELOS/textures/Wood_Tower_Col.jpg", L"Assets/MODELOS/textures/Wood_Tower_Nor.jpg", 0, 0);
-        tree = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/Tree1.obj", L"Assets/MODELOS/BarkDecidious0143_5_S.jpg", L"Assets/MODELOS/Leaves0120_35_S.png", 0, 0);
+        bronzeSword = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/Bronze_sword.obj", L"Assets/MODELOS/Bronze_sword_Specular.bmp", L"Assets/MODELOS/Bronze_sword_Diffuse.bmp", -15, 100);
+        woodenWatchTower = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/wooden watch tower2.obj", L"Assets/MODELOS/textures/Wood_Tower_Col.jpg", L"Assets/MODELOS/textures/Wood_Tower_Nor.jpg", -100, -100);
+        tree = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TREE.obj", L"Assets/MODELOS/TREE_DIFFUSE.png", L"Assets/MODELOS/TREE_SPECULAR.png", 100, 100);
 
 		caballo = new Objeto(D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0), 50);
 		
@@ -307,18 +324,30 @@ public:
 		//model->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 1);
 
 
-		/*fuente->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 5);
-		casa1->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 5);
-		casa2->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 5);
-		ruins->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 300), camara->posCam, 10.0f, 0, 'A', 5);
-		tent->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 1);*/
-
+		/*fuente->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
+		casa1->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
+		casa2->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
+		ruins->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 300), camara->posCam, 10.0f, 0, 'a', 5);
+		tent->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 1);
         marijuana->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 10);
         horse->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 10);
 		bronzeSword->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 10);
-		/*
-        woodenwatchtower->draw(camara->vista, camara->proyeccion, terreno->superficie(200, 200), camara->poscam, 10.0f, 0, 'a', 1);
-        tree->draw(camara->vista, camara->proyeccion, terreno->superficie(250, 250), camara->poscam, 10.0f, 0, 'a', 1);*/
+        woodenWatchTower->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 10);
+        tree->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 7);*/
+
+
+		DrawObjectOnTerrain(fuente, 10.0f, 0, 'a', 5);
+		DrawObjectOnTerrain(casa1, 10.0f, 0, 'a', 5);
+		DrawObjectOnTerrain(casa2, 10.0f, 0, 'a', 5);
+		DrawObjectOnTerrain(ruins, 10.0f, 0, 'a', 5);
+		DrawObjectOnTerrain(tent, 10.0f, 0, 'a', 1);
+		DrawObjectOnTerrain(marijuana, 10.0f, 0, 'A', 10);
+		DrawObjectOnTerrain(horse, 10.0f, 0, 'A', 10);
+		DrawObjectOnTerrain(bronzeSword, 10.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(woodenWatchTower, 10.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(tree, 10.0f, 0, 'a', 7);
+
+
 		swapChain->Present( 1, 0 );
 
 		if (caballo->collider->isInside(camara->posCam) == true) {
@@ -501,6 +530,9 @@ public:
 			uv4[j + 24].v = 1;
 		}
 	}
+
+	// Fuera de la declaración de la clase en tu .cpp o después del .h
+	
 
 };
 #endif
