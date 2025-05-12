@@ -18,6 +18,8 @@ public:
 	D3DXVECTOR3 refFront;
 	D3DXMATRIX vista;
 	D3DXMATRIX proyeccion;
+	D3DXVECTOR3 camaraPosAnterior;
+	
 	int ancho;
 	int alto;
 
@@ -49,8 +51,9 @@ public:
 		
 	}
 
-	D3DXMATRIX UpdateCam(float vel, float arriaba, float izqder)
+	D3DXMATRIX UpdateCam(float vel,float dirLeft, float arriaba, float izqder)
 	{
+		camaraPosAnterior=posCam;
 		D3DXVECTOR4 tempo;
 		D3DXQUATERNION quatern; //quaternion temporal para la camara
 		D3DXMATRIX giraUp, giraRight; //matrices temporales para los giros
@@ -84,6 +87,7 @@ public:
 
 		//ajustamos la matriz de vista con lo obtenido
 		posCam += refFront * vel/10.0;
+		posCam += refRight * dirLeft/10.0;
 		hdveo = posCam + refFront;
 		D3DXMatrixLookAtLH(&vista, &posCam, &hdveo, &refUp);
 		D3DXMatrixTranspose( &vista, &vista );

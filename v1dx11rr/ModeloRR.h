@@ -46,6 +46,7 @@ private:
 
 	ID3D11ShaderResourceView* colorMap;
 	ID3D11ShaderResourceView* specMap;
+	ID3D11ShaderResourceView* bumpMap;
 	ID3D11SamplerState* colorMapSampler;
 
 	ID3D11Buffer* viewCB;
@@ -57,6 +58,8 @@ private:
 	ID3D11Buffer* cameraPosCB;
 	XMFLOAT3 camPos;
 	ID3D11Buffer* specForceCB;
+	ID3D11Buffer* diffuseColorCB;
+	ID3D11Buffer* sunPosCB;
 	float specForce;
 
 	int ancho, alto;
@@ -351,6 +354,172 @@ public:
 	{
 
 	}
+
+	void DrawTPS(D3DXMATRIX vista, D3DXMATRIX proyeccion, D3DXVECTOR3 posCam, D3DXVECTOR3 posModel, float specForce, float scale, D3DXVECTOR3 dirModel, float _rota)
+	{
+		static float rotation = 0.0f;
+		rotation += 0.01;
+
+		//paso de datos, es decir cuanto es el ancho de la estructura
+		unsigned int stride = sizeof(VertexObj);
+		unsigned int offset = 0;
+
+		camPos.x = posCam.x;
+		camPos.y = posCam.y;
+		camPos.z = posCam.z;
+
+		//define la estructura del vertice a traves de layout
+		d3dContext->IASetInputLayout(inputLayout);
+
+		//define con que buffer trabajara
+		d3dContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+
+		//define la forma de conexion de los vertices
+		d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		//Establece el vertex y pixel shader que utilizara
+		d3dContext->VSSetShader(VertexShaderVS, 0, 0);
+		d3dContext->PSSetShader(solidColorPS, 0, 0);
+		//pasa lo sbuffers al shader
+		d3dContext->PSSetShaderResources(0, 1, &colorMap);
+		d3dContext->PSSetShaderResources(1, 1, &specMap);
+
+		d3dContext->PSSetSamplers(0, 1, &colorMapSampler);
+
+		//mueve la camara
+		//float difz = posCam.z - dirModel.z;
+		//float difx = posCam.x - dirModel.x;
+		//float dify = posCam.y - dirModel.y;
+		//float dist = sqrt(difz * difz + difx * difx);
+		////float disty = sqrt(difz * difz + dify * dify);
+		//float yaw = acos(difx / dist);
+		////float pitch = acos(dify / disty);
+		//if (posCam.z > dirModel.z)
+		//yaw = (yaw * -1);
+		//yaw = yaw + (D3DX_PI / 2);
+
+		////if (posCam.z < dirModel.z)
+		////pitch = (pitch * -1);
+		////pitch = pitch + (D3DX_PI / 2);
+		//float pitch = (dirModel.y - posCam.y) / 12.0f;
+
+		//float deltaZ = posModel.z - dirModel.z;
+		//float deltaX = posModel.x - dirModel.x;
+		//float deltaY = posModel.y - dirModel.y;
+		//float distance = sqrt(deltaZ * deltaZ + deltaX * deltaX);
+		//float pitch = atan2(deltaY, distance);
+		//float yaw = atan2(deltaX, deltaZ);
+
+		//mueve la camara
+		D3DXMATRIX rotationMat;
+
+		//D3DXMatrixRotationYawPitchRoll(&rotationMat, _rota * 0.1f, _rota * 0.2f, _rota * 0.3f); //angleX + (3.1416 / 2)
+
+		D3DXMatrixRotationYawPitchRoll(&rotationMat, _rota*0.1f ,0, 0); //angleX + (3.1416 / 2)
+		
+		D3DXMATRIX translationMat;
+		D3DXMatrixTranslation(&translationMat, posModel.x, posModel.y, posModel.z);
+		//if (angle == 'X')
+		//D3DXMatrixRotationX(&rotationMat, rot);
+		//else if (angle == 'Y')
+		//D3DXMatrixRotationY(&rotationMat, rot);
+		//else if (angle == 'Z')
+		//D3DXMatrixRotationZ(&rotationMat, rot);
+		//viewMatrix *= rotationMat;
+
+		//XMMatrixRotationRollPitchYaw(rotationx, rotationy, 0.0f);
+
+		D3DXMATRIX scaleMat;
+		D3DXMatrixScaling(&scaleMat, scale, scale, scale);
+
+		D3DXMATRIX worldMat = rotationMat * scaleMat * translationMat;
+		D3DXMatrixTranspose(&worldMat, &worldMat);
+		//actualiza los buffers del shader
+		d3dContext->UpdateSubresource(worldCB, 0, 0, &worldMat, 0, 0);
+		d3dContext->UpdateSubresource(viewCB, 0, 0, &vista, 0, 0);
+		d3dContext->UpdateSubresource(projCB, 0, 0, &proyeccion, 0, 0);
+		d3dContext->UpdateSubresource(cameraPosCB, 0, 0, &camPos, 0, 0);
+		d3dContext->UpdateSubresource(specForceCB, 0, 0, &specForce, 0, 0);
+		//le pasa al shader los buffers
+		d3dContext->VSSetConstantBuffers(0, 1, &worldCB);
+		d3dContext->VSSetConstantBuffers(1, 1, &viewCB);
+		d3dContext->VSSetConstantBuffers(2, 1, &projCB);
+		d3dContext->VSSetConstantBuffers(3, 1, &cameraPosCB);
+		d3dContext->VSSetConstantBuffers(4, 1, &specForceCB);
+		//cantidad de trabajos
+
+		d3dContext->Draw(m_ObjParser.m_nVertexCount, 0);
+	}
+	
+	//void DrawTPS(D3DXMATRIX vista, D3DXMATRIX proyeccion, D3DXVECTOR3 posCam, D3DXVECTOR3 posModel, float specForce, float scale, D3DXVECTOR3 dirModel, XMFLOAT3 ambientColor, D3DXVECTOR3 sunPos) {
+	//	static float rotation = 0.0f;
+	//	rotation += 0.01;
+
+	//	//paso de datos, es decir cuanto es el ancho de la estructura
+	//	unsigned int stride = sizeof(VertexObj);
+	//	unsigned int offset = 0;
+
+	//	camPos.x = posCam.x;
+	//	camPos.y = posCam.y;
+	//	camPos.z = posCam.z;
+
+	//	//define la estructura del vertice a traves de layout
+	//	d3dContext->IASetInputLayout(inputLayout);
+
+	//	//define con que buffer trabajara
+	//	d3dContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+
+	//	//define la forma de conexion de los vertices
+	//	d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//	//Establece el vertex y pixel shader que utilizara
+	//	d3dContext->VSSetShader(VertexShaderVS, 0, 0);
+	//	d3dContext->PSSetShader(solidColorPS, 0, 0);
+	//	//pasa lo sbuffers al shader
+	//	d3dContext->PSSetShaderResources(0, 1, &colorMap);
+	//	d3dContext->PSSetShaderResources(1, 1, &specMap);
+	//	d3dContext->PSSetShaderResources(2, 1, &bumpMap);
+
+	//	d3dContext->PSSetSamplers(0, 1, &colorMapSampler);
+
+	//	float deltaZ = posModel.z - dirModel.z;
+	//	float deltaX = posModel.x - dirModel.x;
+	//	float deltaY = posModel.y - dirModel.y;
+	//	float distance = sqrt(deltaZ * deltaZ + deltaX * deltaX);
+	//	float pitch = atan2(deltaY, distance);
+	//	float yaw = atan2(deltaX, deltaZ);
+
+	//	//mueve la camara
+	//	D3DXMATRIX rotationMat;
+	//	D3DXMatrixRotationYawPitchRoll(&rotationMat, yaw, -pitch, 0); //angleX + (3.1416 / 2)
+	//	D3DXMATRIX translationMat;
+	//	D3DXMatrixTranslation(&translationMat, posModel.x, posModel.y, posModel.z);
+
+	//	D3DXMATRIX scaleMat;
+	//	D3DXMatrixScaling(&scaleMat, scale, scale, scale);
+
+	//	D3DXMATRIX worldMat = rotationMat * scaleMat * translationMat;
+	//	D3DXMatrixTranspose(&worldMat, &worldMat);
+	//	//actualiza los buffers del shader
+	//	d3dContext->UpdateSubresource(worldCB, 0, 0, &worldMat, 0, 0);
+	//	d3dContext->UpdateSubresource(viewCB, 0, 0, &vista, 0, 0);
+	//	d3dContext->UpdateSubresource(projCB, 0, 0, &proyeccion, 0, 0);
+	//	d3dContext->UpdateSubresource(cameraPosCB, 0, 0, &camPos, 0, 0);
+	//	d3dContext->UpdateSubresource(specForceCB, 0, 0, &specForce, 0, 0);
+	//	d3dContext->UpdateSubresource(diffuseColorCB, 0, 0, &ambientColor, 0, 0);
+	//	d3dContext->UpdateSubresource(sunPosCB, 0, 0, &sunPos, 0, 0);
+	//	//le pasa al shader los buffers
+	//	d3dContext->VSSetConstantBuffers(0, 1, &worldCB);
+	//	d3dContext->VSSetConstantBuffers(1, 1, &viewCB);
+	//	d3dContext->VSSetConstantBuffers(2, 1, &projCB);
+	//	d3dContext->VSSetConstantBuffers(3, 1, &cameraPosCB);
+	//	d3dContext->VSSetConstantBuffers(4, 1, &specForceCB);
+	//	d3dContext->VSSetConstantBuffers(5, 1, &diffuseColorCB);
+	//	d3dContext->VSSetConstantBuffers(6, 1, &sunPosCB);
+	//	//cantidad de trabajos
+
+	//	d3dContext->Draw(m_ObjParser.m_nVertexCount, 0);
+	//}
 
 	void Draw(D3DXMATRIX vista, D3DXMATRIX proyeccion, float ypos, D3DXVECTOR3 posCam, float specForce, float rot, char angle, float scale)
 	{

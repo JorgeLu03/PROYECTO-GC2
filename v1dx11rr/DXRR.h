@@ -14,6 +14,7 @@
 #include "GUI.h"
 #include "Objeto.h"
 
+
 class DXRR{	
 
 private:
@@ -40,13 +41,14 @@ public:
 	ID3D11BlendState *alphaBlendState, *commonBlendState;
 
 	int frameBillboard;
+	float rotation = 0.0f;
 
 	TerrenoRR *terreno;
 	SkyDome *skydome;
 	BillboardRR *billboard;
 	Camara *camara;
 	ModeloRR* model;
-
+	
 	//NEW
 	ModeloRR* fuente;
 	ModeloRR* casa1;
@@ -58,8 +60,10 @@ public:
     ModeloRR* bronzeSword;
     ModeloRR* woodenWatchTower;
     ModeloRR* tree;
+	//GUI
+	GUI* iconplanta;
 
-	void DrawObjectOnTerrain(ModeloRR* objeto, float scale, float rotationY, char flag, float multiplier)
+	void DrawObjectOnTerrain(ModeloRR* objeto, float scale, float rotationY, char flag, float multiplier)	
 	{
 		if (objeto == nullptr || terreno == nullptr)
 		{
@@ -67,14 +71,17 @@ public:
 		}
 
 
-		float objPosX = objeto->getPosX(); // *** Esto asume que ModeloRR tiene miembro 'posicion' ***
-		float objPosZ = objeto->getPosZ(); // *** Esto asume que ModeloRR tiene miembro 'posicion' ***
+		float objPosX = objeto->getPosX();
+		float objPosZ = objeto->getPosZ(); 
 
-		float objHeight = terreno->Superficie(objPosX, objPosZ);
+		//float objHeight = terreno->Superficie(objPosX, objPosZ);
+		D3DXVECTOR3 posObject = D3DXVECTOR3(objPosX, terreno->Superficie(objPosX, objPosZ), objPosZ);
 
-		// Llamar al método Draw del objeto, pasando la altura calculada
-		objeto->Draw(camara->vista, camara->proyeccion, objHeight, camara->posCam, scale, rotationY, flag, multiplier);
+		objeto->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, posObject, 2.0f, scale, posObject, 0);
+
 	}
+
+
 
 	//COL
 	Objeto* caballo;
@@ -82,7 +89,7 @@ public:
 
 	float izqder;
 	float arriaba;
-	float vel;
+	float vel,dirLeft;
 	bool breakpoint;
 	vector2 uv1[32];
 	vector2 uv2[32];
@@ -120,14 +127,18 @@ public:
 		tent = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TENT.obj", L"Assets/MODELOS/TENT2.png", L"Assets/MODELOS/RUINS_SPEC.png", 20, -40);
 
         marijuana = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/MARIHUANA.obj", L"Assets/MODELOS/branchdiffuse.jpg", L"Assets/MODELOS/bump leaf.jpg", 0, 0);
-        horse = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CABALLO.obj", L"Assets/MODELOS/textures/HORSE_COLOR.png", L"Assets/MODELOS/textures/HORSE_SPEC.png", 0, 20);
+        horse = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CABALLO.obj", L"Assets/MODELOS/textures/HORSE_COLOR.png", L"Assets/MODELOS/textures/HORSE_SPEC.png", 30, 20);
 
-        bronzeSword = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/Bronze_sword.obj", L"Assets/MODELOS/Bronze_sword_Specular.bmp", L"Assets/MODELOS/Bronze_sword_Diffuse.bmp", -15, 100);
-        woodenWatchTower = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/wooden watch tower2.obj", L"Assets/MODELOS/textures/Wood_Tower_Col.jpg", L"Assets/MODELOS/textures/Wood_Tower_Nor.jpg", -100, -100);
+        bronzeSword = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/Bronze_sword.obj", L"Assets/MODELOS/Bronze_sword_Specular.bmp", L"Assets/MODELOS/Bronze_sword_SPEC.jpg", -15, 100);
+        woodenWatchTower = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/wooden watch tower2.obj", L"Assets/MODELOS/textures/Wood_Tower_Col.jpg", L"Assets/MODELOS/textures/Wood_Tower_Col_SPEC.jpg", -100, -100);
         tree = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TREE.obj", L"Assets/MODELOS/TREE_DIFFUSE.png", L"Assets/MODELOS/TREE_SPECULAR.png", 100, 100);
 
-		caballo = new Objeto(D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0), 50);
-		
+		int randX = 100;
+		int randZ = 20;
+		//Objeto(vec_buffer, D3DXVECTOR3(randX, terreno->Superficie(randX, randZ), randZ - 5), 20)
+
+		caballo = new Objeto(D3DXVECTOR3(randX, terreno->Superficie(randX, randZ), randZ), D3DXVECTOR3(randX, terreno->Superficie(randX, randZ), randZ), 10);
+		iconplanta = new GUI(d3dDevice, d3dContext, 0.2f, 0.25f, L"Assets/MODELOS/Leaves0120_35_S.png");
 	}
 
 	~DXRR()
@@ -307,7 +318,7 @@ public:
 		d3dContext->ClearRenderTargetView( backBufferTarget, clearColor );
 		d3dContext->ClearDepthStencilView( depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 		camara->posCam.y = terreno->Superficie(camara->posCam.x, camara->posCam.z) + 5 ;
-		camara->UpdateCam(vel, arriaba, izqder);
+		camara->UpdateCam(vel,dirLeft, arriaba, izqder);
 		skydome->Update(camara->vista, camara->proyeccion);
 
 		float camPosXZ[2] = { camara->posCam.x, camara->posCam.z };
@@ -322,7 +333,12 @@ public:
 
 		TurnOffAlphaBlending();
 		//model->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 1);
+		if(caballo->collider->isInside(camara->posCam)==true){
+			iconplanta->Draw(-0.85f, -0.45f);
+			camara->posCam = camara->camaraPosAnterior;
 
+		}
+		horse->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, caballo->posicion, 2.0f, 8, caballo->apunta, rotation);
 
 		/*fuente->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
 		casa1->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
@@ -340,19 +356,22 @@ public:
 		DrawObjectOnTerrain(casa1, 10.0f, 0, 'a', 5);
 		DrawObjectOnTerrain(casa2, 10.0f, 0, 'a', 5);
 		DrawObjectOnTerrain(ruins, 10.0f, 0, 'a', 5);
-		DrawObjectOnTerrain(tent, 10.0f, 0, 'a', 1);
+		DrawObjectOnTerrain(tent, 10.0f, 0, 'a', 5);
 		DrawObjectOnTerrain(marijuana, 10.0f, 0, 'A', 10);
-		DrawObjectOnTerrain(horse, 10.0f, 0, 'A', 10);
+
+		//DrawObjectOnTerrain(horse, 10.0f, 0, 'A', 10);
+
 		DrawObjectOnTerrain(bronzeSword, 10.0f, 0, 'a', 10);
 		DrawObjectOnTerrain(woodenWatchTower, 10.0f, 0, 'a', 10);
 		DrawObjectOnTerrain(tree, 10.0f, 0, 'a', 7);
 
-
+		rotation = rotation + 0.1f;
 		swapChain->Present( 1, 0 );
 
-		if (caballo->collider->isInside(camara->posCam) == true) {
+		//if (caballo->collider->isInside(camara->posCam) == true) {
+		//	RestaurarPosicionCamara();
+		//}
 
-		}
 	}
 
 
