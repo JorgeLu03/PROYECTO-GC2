@@ -13,6 +13,7 @@
 #include "Colisiones.h"
 #include "GUI.h"
 #include "Objeto.h"
+#include <chrono>
 
 
 class DXRR{	
@@ -61,7 +62,19 @@ public:
     ModeloRR* woodenWatchTower;
     ModeloRR* tree;
 	//GUI
-	GUI* iconplanta;
+	GUI* HP100;
+	GUI* HP75;
+	GUI* HP50;
+	GUI* HP25;
+	GUI* HP0;
+	int ultimoHP = 100;
+	int ultimoObjetivo = 0;
+	//Timer
+	chrono::steady_clock::time_point tiempoInicio = std::chrono::steady_clock::now();
+	GUI* pantallaInicio;
+	bool mostrarPantallaInicio = true;
+	bool inicTimer = false;
+	//Minimap
 
 	void DrawObjectOnTerrain(ModeloRR* objeto, float scale, float rotationY, char flag, float multiplier)	
 	{
@@ -82,10 +95,24 @@ public:
 	}
 
 
+	//Objetivos
+	GUI* pantallaGameOver;
+	GUI* pantallaFIN;
+	GUI* OBJ1;
+	GUI* OBJ2;
+	GUI* OBJ3;
+	GUI* OBJ4;
+	bool obj1 = false;
+	bool obj2 = false;
+	bool obj3 = false;
+	bool obj4 = false;
+	bool objFinal = false;
+	bool inicioJuego= false;
 
 	//COL
 	Objeto* caballo;
 	Objeto* colision;
+    Objeto* colisionTerreno;
 
 	float izqder;
 	float arriaba;
@@ -98,6 +125,7 @@ public:
 
 	XACTINDEX cueIndex;
 	CXACT3Util m_XACT3;
+	CXACT3Util Música;
 	
     DXRR(HWND hWnd, int Ancho, int Alto)
 	{
@@ -121,10 +149,10 @@ public:
 		billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 				//
 		fuente = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/FUENTE2.obj", L"Assets/MODELOS/FUENTE.png", L"Assets/MODELOS/FUENTE_SPEC2.png", 20, 30);
-		casa1 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA1.obj", L"Assets/MODELOS/CASA1.png", L"Assets/MODELOS/CASA1_SPEC.png", -20, -30);
-		casa2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA2.obj", L"Assets/MODELOS/CASA2.png", L"Assets/MODELOS/CASA2_SPEC.png", 100, 0);
+		casa1 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA4.obj", L"Assets/MODELOS/CASA1.png", L"Assets/MODELOS/CASA1_SPEC.png", -20, -30);
+		casa2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA3.obj", L"Assets/MODELOS/CASA2.png", L"Assets/MODELOS/CASA2_SPEC.png", 100, 0);
 		ruins = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/RUINS.obj", L"Assets/MODELOS/RUINS.png", L"Assets/MODELOS/RUINS_SPEC.png", 0, 40);
-		tent = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TENT.obj", L"Assets/MODELOS/TENT2.png", L"Assets/MODELOS/RUINS_SPEC.png", 20, -40);
+		tent = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TENT2.obj", L"Assets/MODELOS/TENT2.png", L"Assets/MODELOS/RUINS_SPEC.png", 20, -40);
 
         marijuana = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/MARIHUANA.obj", L"Assets/MODELOS/branchdiffuse.jpg", L"Assets/MODELOS/bump leaf.jpg", 0, 0);
         horse = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CABALLO.obj", L"Assets/MODELOS/textures/HORSE_COLOR.png", L"Assets/MODELOS/textures/HORSE_SPEC.png", 30, 20);
@@ -135,14 +163,48 @@ public:
 
 		int randX = 100;
 		int randZ = 20;
-		//Objeto(vec_buffer, D3DXVECTOR3(randX, terreno->Superficie(randX, randZ), randZ - 5), 20)
 
 		caballo = new Objeto(D3DXVECTOR3(randX, terreno->Superficie(randX, randZ), randZ), D3DXVECTOR3(randX, terreno->Superficie(randX, randZ), randZ), 10);
-		iconplanta = new GUI(d3dDevice, d3dContext, 0.2f, 0.25f, L"Assets/MODELOS/Leaves0120_35_S.png");
+		HP100 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/100.png");
+		HP75 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/75.png");
+		HP50 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/50.png");
+		HP25 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/25.png");
+		HP0 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/0.png");
+
+		OBJ1 = new GUI(d3dDevice, d3dContext, 0.63f, 0.63f, L"Assets/GUI/OBJ1.png");
+		OBJ2 = new GUI(d3dDevice, d3dContext, 0.63f, 0.63f, L"Assets/GUI/OBJ2.png");
+		OBJ3 = new GUI(d3dDevice, d3dContext, 0.63f, 0.5f, L"Assets/GUI/OBJ3.png");
+		OBJ4 = new GUI(d3dDevice, d3dContext, 0.63f, 0.63f, L"Assets/GUI/OBJ4.png");
+
+		pantallaGameOver = new GUI(d3dDevice, d3dContext, 1.8f, 1.8f, L"Assets/GUI/GAMEOVER.jpg");
+		pantallaFIN = new GUI(d3dDevice, d3dContext, 1.8f, 1.8f, L"Assets/GUI/FIN.jpg");
+		pantallaInicio = new GUI(d3dDevice, d3dContext, 1.8f, 1.8f, L"Assets/GUI/PANTALLA.jpg"); // Ajusta la ruta de la imagen
+		//COLISIONES
+		colisionTerreno = new Objeto(
+			D3DXVECTOR3(0, 0, 0), // centro de la caja (ajusta si tu terreno está en otro lugar)
+			D3DXVECTOR3(0, 0, 0), // target (puede ser igual al centro)
+			290, 1000, 290            // ancho, alto, profundidad de la caja (ajusta el alto si lo necesitas)
+		);
+
+		Música.Initialize();
+		Música.LoadWaveBank(L"Assets/Sonido/WAVES.xwb");
+		Música.LoadSoundBank(L"Assets/Sonido/SOUNDS.xsb");
+
+		// Replace the problematic line with the following code to fix the errors:
+		if (Música.m_pSoundBank) {
+			// Retrieve the cue index for the sound "musica" from the sound bank
+			XACTINDEX cueIndex = Música.m_pSoundBank->GetCueIndex("music");
+			if (cueIndex != XACTINDEX_INVALID) {
+				// Play the sound using the cue index
+				Música.m_pSoundBank->Play(cueIndex, 0, 0, NULL);
+			}
+		}
+
 	}
 
 	~DXRR()
 	{
+
 		LiberaD3D();
 		m_XACT3.Terminate();
 	}
@@ -305,6 +367,7 @@ public:
 	
 	void Render(void)
 	{
+		Música.DoWork();
 		float sphere[3] = { 0,0,0 };
 		float prevPos[3] = { camara->posCam.x, camara->posCam.z, camara->posCam.z };
 		static float angle = 0.0f;
@@ -333,11 +396,98 @@ public:
 
 		TurnOffAlphaBlending();
 		//model->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 1);
-		if(caballo->collider->isInside(camara->posCam)==true){
-			iconplanta->Draw(-0.85f, -0.45f);
-			camara->posCam = camara->camaraPosAnterior;
 
+        if (mostrarPantallaInicio) {
+            pantallaInicio->Draw(-0.2f, 0.1f);
+        }
+		//pantallaInicio->Draw(-0.2f, 0.1f);
+		
+
+
+		//HP100->Draw(-0.7f, -0.45f);
+
+		// En cada frame:
+		auto ahora = std::chrono::steady_clock::now();
+		float tiempoTotal = std::chrono::duration<float>(ahora - tiempoInicio).count();
+
+		// Timer
+		int hpActual = 100;
+		if (tiempoTotal < 30.0f) {
+			hpActual = 100;
+			HP100->Draw(-0.7f, -0.45f);
 		}
+		else if (tiempoTotal < 60.0f) {
+			hpActual = 75;
+			HP75->Draw(-0.7f, -0.45f);
+		}
+		else if (tiempoTotal < 90.0f) {
+			hpActual = 50;
+			HP50->Draw(-0.7f, -0.45f);
+		}
+		else if (tiempoTotal < 120.0f) {
+			hpActual = 25;
+			HP25->Draw(-0.7f, -0.45f);
+		}
+		else {
+			if (tiempoTotal >= 120.0f && tiempoTotal <=125) {
+				hpActual = 0;
+				HP0->Draw(-0.7f, -0.45f);
+			}
+			else if (tiempoTotal > 125.0f) {
+				pantallaGameOver->Draw(-0.2f, 0.1f);
+			}
+		}
+		if (hpActual != ultimoHP) {
+			if (Música.m_pSoundBank) {
+				XACTINDEX cueIndex = Música.m_pSoundBank->GetCueIndex("hit");
+				if (cueIndex != XACTINDEX_INVALID) {
+					Música.m_pSoundBank->Play(cueIndex, 0, 0, NULL);
+				}
+			}
+			ultimoHP = hpActual;
+		}
+
+		//OBJETIVOS
+		int objetivoActual = 0;
+		if (!obj1) {
+			OBJ1->Draw(0.2f, 0.78f);
+		}
+		else if (!obj2) {
+			objetivoActual = 2;
+			OBJ2->Draw(0.2, 0.78f);
+		}
+		else if (!obj3) {
+			objetivoActual = 3;
+			OBJ3->Draw(0.2f, 0.78f);
+		}
+		else if (!obj4) {
+			objetivoActual = 4;
+			OBJ4->Draw(0.2f, 0.78f);
+			objFinal = true;
+		}
+		if (objetivoActual != 0 && objetivoActual != ultimoObjetivo) {
+			if (Música.m_pSoundBank) {
+				XACTINDEX cueIndex = Música.m_pSoundBank->GetCueIndex("paper");
+				if (cueIndex != XACTINDEX_INVALID) {
+					Música.m_pSoundBank->Play(cueIndex, 0, 0, NULL);
+				}
+			}
+			ultimoObjetivo = objetivoActual;
+		}
+		//FINAL
+		if (objFinal) {
+			pantallaFIN->Draw(-0.2f, 0.1f);
+		}
+
+
+		if (caballo->collider->isInside(camara->posCam) == true) {
+			camara->posCam = camara->camaraPosAnterior;
+			obj1 = true;
+		}		
+		if (colisionTerreno->collider->isInside(camara->posCam) == false) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+
 		horse->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, caballo->posicion, 2.0f, 8, caballo->apunta, rotation);
 
 		/*fuente->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
@@ -352,18 +502,18 @@ public:
         tree->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 7);*/
 
 
-		DrawObjectOnTerrain(fuente, 10.0f, 0, 'a', 5);
-		DrawObjectOnTerrain(casa1, 10.0f, 0, 'a', 5);
-		DrawObjectOnTerrain(casa2, 10.0f, 0, 'a', 5);
-		DrawObjectOnTerrain(ruins, 10.0f, 0, 'a', 5);
-		DrawObjectOnTerrain(tent, 10.0f, 0, 'a', 5);
-		DrawObjectOnTerrain(marijuana, 10.0f, 0, 'A', 10);
+		DrawObjectOnTerrain(fuente, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(casa1, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(casa2, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(ruins, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(tent, 5.0f, 0, 'a',10);
+		DrawObjectOnTerrain(marijuana, 6.0f, 0, 'A', 10);
 
 		//DrawObjectOnTerrain(horse, 10.0f, 0, 'A', 10);
 
-		DrawObjectOnTerrain(bronzeSword, 10.0f, 0, 'a', 10);
-		DrawObjectOnTerrain(woodenWatchTower, 10.0f, 0, 'a', 10);
-		DrawObjectOnTerrain(tree, 10.0f, 0, 'a', 7);
+		DrawObjectOnTerrain(bronzeSword, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(woodenWatchTower, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(tree, 5.0f, 0, 'a', 10);
 
 		rotation = rotation + 0.1f;
 		swapChain->Present( 1, 0 );
@@ -464,6 +614,11 @@ public:
 		d3dDevice->CreateDepthStencilState(&descDSD, &depthStencilState);
 		
 		d3dContext->OMSetDepthStencilState(depthStencilState, 1);
+	}
+
+	bool Timer(int sec) {
+		Sleep(sec * 1000);
+		return true;
 	}
 
 	void TurnOffDepth()

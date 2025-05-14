@@ -200,6 +200,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
             if (keyboardData[DIK_B] & 0x80) {
                 dxrr->breakpoint = true;
+            }          
+            if (keyboardData[DIK_SPACE] & 0x80) {
+                dxrr->mostrarPantallaInicio = false;
+                dxrr->inicTimer = true;
+                dxrr->inicioJuego = true;
+
             }
 
             if (keyboardData[DIK_ESCAPE] & 0x80) {

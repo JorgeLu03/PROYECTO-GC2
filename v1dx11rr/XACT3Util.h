@@ -23,6 +23,11 @@ public:
     bool LoadWaveBank(LPCWSTR szFilePath);
     bool LoadSoundBank(LPCWSTR szFilePath);
     void DoWork();
+    // Audio
+    bool audioInicializado;
+    XACTINDEX backgroundMusicCue; // To store the ID of the background music cue
+
+
 
     // Implementation
 protected:
