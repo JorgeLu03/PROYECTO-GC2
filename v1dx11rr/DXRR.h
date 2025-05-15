@@ -49,7 +49,10 @@ public:
 	BillboardRR *billboard;
 	Camara *camara;
 	ModeloRR* model;
-	
+	//BILLBOARDS
+	BillboardRR* ARBOL;
+	BillboardRR* aguaBillboard;
+
 	//NEW
 	ModeloRR* fuente;
 	ModeloRR* casa1;
@@ -61,14 +64,23 @@ public:
     ModeloRR* bronzeSword;
     ModeloRR* woodenWatchTower;
     ModeloRR* tree;
+    ModeloRR* tree2;
+	ModeloRR* tree3;
 	//GUI
 	GUI* HP100;
 	GUI* HP75;
 	GUI* HP50;
 	GUI* HP25;
 	GUI* HP0;
+	GUI* Espada;
+	GUI* Planta;
 	int ultimoHP = 100;
 	int ultimoObjetivo = 0;
+	bool dibujaEspada = false;
+	bool dibujaPlanta = false;
+	bool objP1 = true;
+	bool objP2 = false;
+
 	//Timer
 	chrono::steady_clock::time_point tiempoInicio = std::chrono::steady_clock::now();
 	GUI* pantallaInicio;
@@ -87,10 +99,9 @@ public:
 		float objPosX = objeto->getPosX();
 		float objPosZ = objeto->getPosZ(); 
 
-		//float objHeight = terreno->Superficie(objPosX, objPosZ);
 		D3DXVECTOR3 posObject = D3DXVECTOR3(objPosX, terreno->Superficie(objPosX, objPosZ), objPosZ);
 
-		objeto->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, posObject, 2.0f, scale, posObject, 0);
+		objeto->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, posObject, 2.0f, scale, posObject, rotationY);
 
 	}
 
@@ -108,11 +119,24 @@ public:
 	bool obj4 = false;
 	bool objFinal = false;
 	bool inicioJuego= false;
-
+	bool escondeEspada = false;
+	bool escondePlanta = false;
 	//COL
 	Objeto* caballo;
 	Objeto* colision;
     Objeto* colisionTerreno;
+	Objeto* fuenteCol;
+	Objeto* casa1Col;
+	Objeto* casa2Col;
+	Objeto* ruinsCol;
+	Objeto* tentCol;
+	Objeto* marijuanaCol;
+	Objeto* bronzeSwordCol;
+	Objeto* woodenWatchTowerCol;
+	Objeto* treeCol;
+	Objeto* tree2Col;
+	Objeto* tree3Col;
+
 
 	float izqder;
 	float arriaba;
@@ -146,45 +170,106 @@ public:
 		camara = new Camara(D3DXVECTOR3(0,80,6), D3DXVECTOR3(0,80,0), D3DXVECTOR3(0,1,0), Ancho, Alto);
 		terreno = new TerrenoRR(300, 300, d3dDevice, d3dContext);
 		skydome = new SkyDome(32, 32, 100.0f, &d3dDevice, &d3dContext, L"Assets/SkyDome.jpg");
+		//Billboards
 		billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
+		ARBOL = new BillboardRR(L"Assets/Billboards/ARBOL.png", L"Assets/Billboards/ARBOL.png",d3dDevice,d3dContext, 20.0f);
+		aguaBillboard = new BillboardRR(L"Assets/Billboards/AGUA.png",L"Assets/Billboards/AGUA_N.png",d3dDevice, d3dContext, 30.0f);
+
 				//
-		fuente = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/FUENTE2.obj", L"Assets/MODELOS/FUENTE.png", L"Assets/MODELOS/FUENTE_SPEC2.png", 20, 30);
-		casa1 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA4.obj", L"Assets/MODELOS/CASA1.png", L"Assets/MODELOS/CASA1_SPEC.png", -20, -30);
-		casa2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA3.obj", L"Assets/MODELOS/CASA2.png", L"Assets/MODELOS/CASA2_SPEC.png", 100, 0);
-		ruins = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/RUINS.obj", L"Assets/MODELOS/RUINS.png", L"Assets/MODELOS/RUINS_SPEC.png", 0, 40);
-		tent = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TENT2.obj", L"Assets/MODELOS/TENT2.png", L"Assets/MODELOS/RUINS_SPEC.png", 20, -40);
+		fuente = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/FUENTE2.obj", L"Assets/MODELOS/FUENTE.png", L"Assets/MODELOS/FUENTE_SPEC2.png", -3, -30);
+		//der
+		casa1 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA4.obj", L"Assets/MODELOS/CASA1.png", L"Assets/MODELOS/CASA1_SPEC.png", -115, 15);
+		//izq
+		casa2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA3.obj", L"Assets/MODELOS/CASA2.png", L"Assets/MODELOS/CASA2_SPEC.png", 100, -130);
+		ruins = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/RUINS.obj", L"Assets/MODELOS/RUINS.png", L"Assets/MODELOS/RUINS_SPEC.png", -90, 110);
+		tent = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TENT2.obj", L"Assets/MODELOS/TENT2.png", L"Assets/MODELOS/RUINS_SPEC.png", 40, -130);
 
-        marijuana = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/MARIHUANA.obj", L"Assets/MODELOS/branchdiffuse.jpg", L"Assets/MODELOS/bump leaf.jpg", 0, 0);
-        horse = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CABALLO.obj", L"Assets/MODELOS/textures/HORSE_COLOR.png", L"Assets/MODELOS/textures/HORSE_SPEC.png", 30, 20);
+        marijuana = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/MARIHUANA.obj", L"Assets/MODELOS/branchdiffuse.jpg", L"Assets/MODELOS/bump leaf.jpg", -70, -90);
+        horse = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CABALLO.obj", L"Assets/MODELOS/textures/HORSE_COLOR.png", L"Assets/MODELOS/textures/HORSE_SPEC.png", 0, 0);
 
-        bronzeSword = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/Bronze_sword.obj", L"Assets/MODELOS/Bronze_sword_Specular.bmp", L"Assets/MODELOS/Bronze_sword_SPEC.jpg", -15, 100);
-        woodenWatchTower = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/wooden watch tower2.obj", L"Assets/MODELOS/textures/Wood_Tower_Col.jpg", L"Assets/MODELOS/textures/Wood_Tower_Col_SPEC.jpg", -100, -100);
-        tree = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/TREE.obj", L"Assets/MODELOS/TREE_DIFFUSE.png", L"Assets/MODELOS/TREE_SPECULAR.png", 100, 100);
+        bronzeSword = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/Bronze_sword.obj", L"Assets/MODELOS/Bronze_sword_Specular.bmp", L"Assets/MODELOS/Bronze_sword_SPEC.jpg", 38.5, -127);
+        woodenWatchTower = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/wooden watch tower2.obj", L"Assets/MODELOS/textures/Wood_Tower_Col.jpg", L"Assets/MODELOS/textures/Wood_Tower_Col_SPEC.jpg", -90, -90);
+        tree = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/UGLYTREE1.obj", L"Assets/MODELOS/TREE_DIFFUSE.png", L"Assets/MODELOS/TREE_SPECULAR.png", -15, -100);
+		tree2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/UGLYTREE2.obj", L"Assets/MODELOS/TREE_DIFFUSE.png", L"Assets/MODELOS/TREE_SPECULAR.png", -65, 27);
+		tree3 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/UGLYTREE3.obj", L"Assets/MODELOS/TREE_DIFFUSE.png", L"Assets/MODELOS/TREE_SPECULAR.png", 5, 80);
 
-		int randX = 100;
-		int randZ = 20;
-
-		caballo = new Objeto(D3DXVECTOR3(randX, terreno->Superficie(randX, randZ), randZ), D3DXVECTOR3(randX, terreno->Superficie(randX, randZ), randZ), 10);
+		caballo = new Objeto(D3DXVECTOR3(-115, terreno->Superficie(-115, -5), -5), D3DXVECTOR3(-115, terreno->Superficie(115, -5), -5), 8);
 		HP100 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/100.png");
 		HP75 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/75.png");
 		HP50 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/50.png");
 		HP25 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/25.png");
 		HP0 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/0.png");
+		Espada = new GUI(d3dDevice, d3dContext, 0.18f, 0.12f, L"Assets/GUI/ESPADA.png");
+		Planta = new GUI(d3dDevice, d3dContext, 0.2f, 0.18f, L"Assets/GUI/CANN.png");
 
 		OBJ1 = new GUI(d3dDevice, d3dContext, 0.63f, 0.63f, L"Assets/GUI/OBJ1.png");
 		OBJ2 = new GUI(d3dDevice, d3dContext, 0.63f, 0.63f, L"Assets/GUI/OBJ2.png");
-		OBJ3 = new GUI(d3dDevice, d3dContext, 0.63f, 0.5f, L"Assets/GUI/OBJ3.png");
+		OBJ3 = new GUI(d3dDevice, d3dContext, 0.63f, 0.63f, L"Assets/GUI/OBJ33.png");
 		OBJ4 = new GUI(d3dDevice, d3dContext, 0.63f, 0.63f, L"Assets/GUI/OBJ4.png");
 
 		pantallaGameOver = new GUI(d3dDevice, d3dContext, 1.8f, 1.8f, L"Assets/GUI/GAMEOVER.jpg");
 		pantallaFIN = new GUI(d3dDevice, d3dContext, 1.8f, 1.8f, L"Assets/GUI/FIN.jpg");
 		pantallaInicio = new GUI(d3dDevice, d3dContext, 1.8f, 1.8f, L"Assets/GUI/PANTALLA.jpg"); // Ajusta la ruta de la imagen
 		//COLISIONES
-		colisionTerreno = new Objeto(
-			D3DXVECTOR3(0, 0, 0), // centro de la caja (ajusta si tu terreno está en otro lugar)
-			D3DXVECTOR3(0, 0, 0), // target (puede ser igual al centro)
-			290, 1000, 290            // ancho, alto, profundidad de la caja (ajusta el alto si lo necesitas)
-		);
+		colisionTerreno = new Objeto(D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0), 290, 1000, 290);
+        // Cambia la creación de los objetos de colisión para que usen el constructor de caja (con 3 dimensiones)
+        // Sustituye el bloque seleccionado por este:
+
+        fuenteCol = new Objeto(
+            D3DXVECTOR3(fuente->getPosX(), terreno->Superficie(fuente->getPosX(), fuente->getPosZ()), fuente->getPosZ()),
+            D3DXVECTOR3(fuente->getPosX(), terreno->Superficie(fuente->getPosX(), fuente->getPosZ()), fuente->getPosZ()),
+            15, 8, 15);
+
+        casa1Col = new Objeto(
+            D3DXVECTOR3(casa1->getPosX(), terreno->Superficie(casa1->getPosX(), casa1->getPosZ()), casa1->getPosZ()),
+            D3DXVECTOR3(casa1->getPosX(), terreno->Superficie(casa1->getPosX(), casa1->getPosZ()), casa1->getPosZ()),
+            12, 12, 12);
+
+        casa2Col = new Objeto(
+            D3DXVECTOR3(casa2->getPosX(), terreno->Superficie(casa2->getPosX(), casa2->getPosZ()), casa2->getPosZ()),
+            D3DXVECTOR3(casa2->getPosX(), terreno->Superficie(casa2->getPosX(), casa2->getPosZ()), casa2->getPosZ()),
+            12, 12, 12);
+
+        ruinsCol = new Objeto(
+            D3DXVECTOR3(ruins->getPosX(), terreno->Superficie(ruins->getPosX(), ruins->getPosZ()), ruins->getPosZ()),
+            D3DXVECTOR3(ruins->getPosX(), terreno->Superficie(ruins->getPosX(), ruins->getPosZ()), ruins->getPosZ()),
+            68, 10, 20);
+
+        tentCol = new Objeto(
+            D3DXVECTOR3(tent->getPosX(), terreno->Superficie(tent->getPosX(), tent->getPosZ()), tent->getPosZ()),
+            D3DXVECTOR3(tent->getPosX(), terreno->Superficie(tent->getPosX(), tent->getPosZ()), tent->getPosZ()),
+            8, 8, 8);
+
+        marijuanaCol = new Objeto(
+            D3DXVECTOR3(marijuana->getPosX(), terreno->Superficie(marijuana->getPosX(), marijuana->getPosZ()), marijuana->getPosZ()),
+            D3DXVECTOR3(marijuana->getPosX(), terreno->Superficie(marijuana->getPosX(), marijuana->getPosZ()), marijuana->getPosZ()),
+            6, 10, 6);
+
+        bronzeSwordCol = new Objeto(
+            D3DXVECTOR3(bronzeSword->getPosX(), terreno->Superficie(bronzeSword->getPosX(), bronzeSword->getPosZ()), bronzeSword->getPosZ()),
+            D3DXVECTOR3(bronzeSword->getPosX(), terreno->Superficie(bronzeSword->getPosX(), bronzeSword->getPosZ()), bronzeSword->getPosZ()),
+            4, 12, 4);
+
+        woodenWatchTowerCol = new Objeto(
+            D3DXVECTOR3(woodenWatchTower->getPosX(), terreno->Superficie(woodenWatchTower->getPosX(), woodenWatchTower->getPosZ()), woodenWatchTower->getPosZ()),
+            D3DXVECTOR3(woodenWatchTower->getPosX(), terreno->Superficie(woodenWatchTower->getPosX(), woodenWatchTower->getPosZ()), woodenWatchTower->getPosZ()),
+            17, 20, 17);
+
+        treeCol = new Objeto(
+            D3DXVECTOR3(tree->getPosX(), terreno->Superficie(tree->getPosX(), tree->getPosZ()), tree->getPosZ()),
+            D3DXVECTOR3(tree->getPosX(), terreno->Superficie(tree->getPosX(), tree->getPosZ()), tree->getPosZ()),
+            8, 16, 8);
+
+        tree2Col = new Objeto(
+            D3DXVECTOR3(tree2->getPosX(), terreno->Superficie(tree2->getPosX(), tree2->getPosZ()), tree2->getPosZ()),
+            D3DXVECTOR3(tree2->getPosX(), terreno->Superficie(tree2->getPosX(), tree2->getPosZ()), tree2->getPosZ()),
+            8, 16, 8);
+
+        tree3Col = new Objeto(
+            D3DXVECTOR3(tree3->getPosX(), terreno->Superficie(tree3->getPosX(), tree3->getPosZ()), tree3->getPosZ()),
+            D3DXVECTOR3(tree3->getPosX(), terreno->Superficie(tree3->getPosX(), tree3->getPosZ()), tree3->getPosZ()),
+            8, 16, 8);
+
 
 		Música.Initialize();
 		Música.LoadWaveBank(L"Assets/Sonido/WAVES.xwb");
@@ -367,7 +452,7 @@ public:
 	
 	void Render(void)
 	{
-		Música.DoWork();
+		//Música.DoWork();
 		float sphere[3] = { 0,0,0 };
 		float prevPos[3] = { camara->posCam.x, camara->posCam.z, camara->posCam.z };
 		static float angle = 0.0f;
@@ -392,19 +477,28 @@ public:
 		terreno->Draw(camara->vista, camara->proyeccion);
 		//TurnOnAlphaBlending();
 		billboard->Draw(camara->vista, camara->proyeccion, camara->posCam,
-			-11, -78, 4, 5, uv1, uv2, uv3, uv4, frameBillboard);
+			-11, -78, 10, 5, uv1, uv2, uv3, uv4, frameBillboard);
+
+
+        // Por el siguiente bloque para dibujar 15 billboards (árboles) en posiciones distintas a los modelos:
+        float billboardPositions[15][2] = {
+            { 0, 20 },   { -60, 80 },  { 80, -20 }, { -130, 100 }, { 70, -110 },
+            { -40, -120 },{ -35, 10 },   { -100, -40 },{ 35, 0 },   { -100, 40 },
+            { 130, -120 },  { -120, -100 },{0, -120 },{130, -78 },   { -30, 120 }
+        };
+        for (int i = 0; i < 15; ++i) {
+            float x = billboardPositions[i][0];
+            float z = billboardPositions[i][1];
+            float y = terreno->Superficie(x, z);
+            ARBOL->Draw(camara->vista, camara->proyeccion, camara->posCam, x, z, y, 100);
+        }
 
 		TurnOffAlphaBlending();
 		//model->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 1);
 
-        if (mostrarPantallaInicio) {
+        /*if (mostrarPantallaInicio) {
             pantallaInicio->Draw(-0.2f, 0.1f);
-        }
-		//pantallaInicio->Draw(-0.2f, 0.1f);
-		
-
-
-		//HP100->Draw(-0.7f, -0.45f);
+        }*/
 
 		// En cada frame:
 		auto ahora = std::chrono::steady_clock::now();
@@ -463,6 +557,9 @@ public:
 		else if (!obj4) {
 			objetivoActual = 4;
 			OBJ4->Draw(0.2f, 0.78f);
+		}
+		else {
+			objetivoActual = 5;
 			objFinal = true;
 		}
 		if (objetivoActual != 0 && objetivoActual != ultimoObjetivo) {
@@ -480,16 +577,15 @@ public:
 		}
 
 
-		if (caballo->collider->isInside(camara->posCam) == true) {
-			camara->posCam = camara->camaraPosAnterior;
-			obj1 = true;
-		}		
+				
 		if (colisionTerreno->collider->isInside(camara->posCam) == false) {
 			camara->posCam = camara->camaraPosAnterior;
 		}
 
 		horse->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, caballo->posicion, 2.0f, 8, caballo->apunta, rotation);
-
+		if (escondeEspada == false) {
+			bronzeSword->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, bronzeSwordCol->posicion, 2.0f, 5.0f, bronzeSwordCol->posicion, rotation);
+		}
 		/*fuente->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
 		casa1->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
 		casa2->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'a', 5);
@@ -503,17 +599,108 @@ public:
 
 
 		DrawObjectOnTerrain(fuente, 5.0f, 0, 'a', 10);
-		DrawObjectOnTerrain(casa1, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(casa1, 5.0f, -45, 'a', 10);
 		DrawObjectOnTerrain(casa2, 5.0f, 0, 'a', 10);
 		DrawObjectOnTerrain(ruins, 5.0f, 0, 'a', 10);
-		DrawObjectOnTerrain(tent, 5.0f, 0, 'a',10);
-		DrawObjectOnTerrain(marijuana, 6.0f, 0, 'A', 10);
-
+		DrawObjectOnTerrain(tent, 5.0f, 90, 'a',10);
+		if (escondePlanta == false) {
+			DrawObjectOnTerrain(marijuana, 6.0f, 0, 'A', 10);
+		}
 		//DrawObjectOnTerrain(horse, 10.0f, 0, 'A', 10);
 
-		DrawObjectOnTerrain(bronzeSword, 5.0f, 0, 'a', 10);
 		DrawObjectOnTerrain(woodenWatchTower, 5.0f, 0, 'a', 10);
 		DrawObjectOnTerrain(tree, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(tree2, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(tree3, 5.0f, 0, 'a', 10);
+
+		// Detectar colisión con la fuente antes de mover la cámara
+		bool colFuente = fuenteCol->collider->isInside(camara->posCam);
+
+		// Colisión física SIEMPRE
+		if (colFuente) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+
+		// Lógica de objetivo 3: solo si obj1 y obj2 ya son true
+		if (obj1 && obj2 && colFuente) {
+			obj3 = true;
+		}
+
+
+		if (casa1Col->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (casa2Col->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		
+		/*if (tentCol->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}*/
+		// --- Colisiones y lógica de objetivos para marijuana y horse ---
+
+// Detectar colisión antes de mover la cámara
+		bool colMarijuana = marijuanaCol->collider->isInside(camara->posCam);
+		bool colHorse = caballo->collider->isInside(camara->posCam);
+
+		// Colisión física SIEMPRE
+		if (colMarijuana) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (colHorse) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+
+		// Lógica de objetivos SOLO si obj1 está cumplido
+		if (obj1) {
+			// Recoger la planta
+			if (!escondePlanta && colMarijuana) {
+				escondePlanta = true;
+				dibujaPlanta = true;
+			}
+
+			if (dibujaPlanta) {
+				Planta->Draw(-0.25f, -0.45f);
+			}
+
+			// Cumplir objetivo 2 al colisionar con el caballo
+			if (dibujaPlanta && colHorse) {
+				obj2 = true;
+			}
+		}
+
+		if (escondeEspada == false) {
+			if (bronzeSwordCol->collider->isInside(camara->posCam)) {
+				escondeEspada = true;
+				dibujaEspada = true;
+			}
+		}
+		if (dibujaEspada == true) {
+			objP1 = true;
+			Espada->Draw(-0.38f, -0.45f);
+		}
+		bool colRuins = ruinsCol->collider->isInside(camara->posCam);
+		if (colRuins) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (objP1 == true && colRuins) {
+			obj1 = true;
+		}
+
+
+		if (woodenWatchTowerCol->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (treeCol->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (tree2Col->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (tree3Col->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		
 
 		rotation = rotation + 0.1f;
 		swapChain->Present( 1, 0 );
