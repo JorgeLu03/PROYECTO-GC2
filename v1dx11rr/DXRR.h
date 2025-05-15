@@ -51,6 +51,9 @@ public:
 	ModeloRR* model;
 	//BILLBOARDS
 	BillboardRR* ARBOL;
+	BillboardRR* BIRD;
+	BillboardRR* STAN;
+	BillboardRR* NOMBRE;
 	BillboardRR* aguaBillboard;
 
 	//NEW
@@ -136,7 +139,11 @@ public:
 	Objeto* treeCol;
 	Objeto* tree2Col;
 	Objeto* tree3Col;
-
+	Objeto* Pared;
+	Objeto* Pared2;
+	Objeto* Pared3;
+	Objeto* Pared4;
+	Objeto* Pared5;
 
 	float izqder;
 	float arriaba;
@@ -173,12 +180,15 @@ public:
 		//Billboards
 		billboard = new BillboardRR(L"Assets/Billboards/fuego-anim.png",L"Assets/Billboards/fuego-anim-normal.png", d3dDevice, d3dContext, 5);
 		ARBOL = new BillboardRR(L"Assets/Billboards/ARBOL.png", L"Assets/Billboards/ARBOL.png",d3dDevice,d3dContext, 20.0f);
+		BIRD = new BillboardRR(L"Assets/Billboards/birdie.png", L"Assets/Billboards/birdie.png",d3dDevice,d3dContext, 10.0f);
+		STAN = new BillboardRR(L"Assets/Billboards/Bandera.png", L"Assets/Billboards/Bandera.png",d3dDevice,d3dContext, 7.0f);
+		NOMBRE = new BillboardRR(L"Assets/Billboards/NOMBRE.png", L"Assets/Billboards/NOMBRE.png",d3dDevice,d3dContext, 3.0f);
 		aguaBillboard = new BillboardRR(L"Assets/Billboards/AGUA.png",L"Assets/Billboards/AGUA_N.png",d3dDevice, d3dContext, 30.0f);
 
 				//
 		fuente = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/FUENTE2.obj", L"Assets/MODELOS/FUENTE.png", L"Assets/MODELOS/FUENTE_SPEC2.png", -3, -30);
 		//der
-		casa1 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA4.obj", L"Assets/MODELOS/CASA1.png", L"Assets/MODELOS/CASA1_SPEC.png", -115, 15);
+		casa1 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA5.obj", L"Assets/MODELOS/CASA1.png", L"Assets/MODELOS/CASA1_SPEC.png", -115, 15);
 		//izq
 		casa2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/CASA3.obj", L"Assets/MODELOS/CASA2.png", L"Assets/MODELOS/CASA2_SPEC.png", 100, -130);
 		ruins = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/RUINS.obj", L"Assets/MODELOS/RUINS.png", L"Assets/MODELOS/RUINS_SPEC.png", -90, 110);
@@ -193,7 +203,7 @@ public:
 		tree2 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/UGLYTREE2.obj", L"Assets/MODELOS/TREE_DIFFUSE.png", L"Assets/MODELOS/TREE_SPECULAR.png", -65, 27);
 		tree3 = new ModeloRR(d3dDevice, d3dContext, "Assets/MODELOS/UGLYTREE3.obj", L"Assets/MODELOS/TREE_DIFFUSE.png", L"Assets/MODELOS/TREE_SPECULAR.png", 5, 80);
 
-		caballo = new Objeto(D3DXVECTOR3(-115, terreno->Superficie(-115, -5), -5), D3DXVECTOR3(-115, terreno->Superficie(115, -5), -5), 8);
+		caballo = new Objeto(D3DXVECTOR3(-115, terreno->Superficie(-115, -25), -25), D3DXVECTOR3(-115, terreno->Superficie(115, -25), -25), 8);
 		HP100 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/100.png");
 		HP75 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/75.png");
 		HP50 = new GUI(d3dDevice, d3dContext, 0.25f, 0.5f, L"Assets/GUI/50.png");
@@ -228,7 +238,7 @@ public:
         casa2Col = new Objeto(
             D3DXVECTOR3(casa2->getPosX(), terreno->Superficie(casa2->getPosX(), casa2->getPosZ()), casa2->getPosZ()),
             D3DXVECTOR3(casa2->getPosX(), terreno->Superficie(casa2->getPosX(), casa2->getPosZ()), casa2->getPosZ()),
-            12, 12, 12);
+            60, 12, 30);
 
         ruinsCol = new Objeto(
             D3DXVECTOR3(ruins->getPosX(), terreno->Superficie(ruins->getPosX(), ruins->getPosZ()), ruins->getPosZ()),
@@ -270,6 +280,39 @@ public:
             D3DXVECTOR3(tree3->getPosX(), terreno->Superficie(tree3->getPosX(), tree3->getPosZ()), tree3->getPosZ()),
             8, 16, 8);
 
+		// Supón que la puerta está al frente (eje Z positivo), ajusta según tu modelo
+		float casa1X = casa1->getPosX();
+		float casa1Z = casa1->getPosZ();
+		float casa1Y = terreno->Superficie(casa1X, casa1Z);
+
+		Pared = new Objeto(
+			D3DXVECTOR3(casa1X-10, casa1Y, casa1Z - 18), // izquierda
+			D3DXVECTOR3(casa1X-10, casa1Y, casa1Z - 18),
+			29, 12, 4); // ancho, alto, grosor
+
+		Pared3 = new Objeto(
+			D3DXVECTOR3(casa1X - 5, casa1Y, casa1Z + 19), // derecha
+			D3DXVECTOR3(casa1X - 5, casa1Y, casa1Z + 19),
+			35, 12, 5);
+
+		// Lateral izquierdo
+		Pared2 = new Objeto(
+			D3DXVECTOR3(casa1X-14, casa1Y, casa1Z+5), // atras
+			D3DXVECTOR3(casa1X-14, casa1Y, casa1Z+6),
+			4, 12, 40);
+
+
+		// Lado izquierdo de la puerta (frontal)
+		Pared4 = new Objeto(
+			D3DXVECTOR3(casa1X +5.2, casa1Y, casa1Z -12), // frente-izquierda
+			D3DXVECTOR3(casa1X +5.2, casa1Y, casa1Z -12),
+			4, 12, 17);
+
+		// Lado derecho de la puerta (frontal)
+		Pared5 = new Objeto(
+			D3DXVECTOR3(casa1X + 7.5, casa1Y, casa1Z + 11), // frente-derecha
+			D3DXVECTOR3(casa1X + 7.5, casa1Y, casa1Z + 11),
+			9, 12, 20);
 
 		Música.Initialize();
 		Música.LoadWaveBank(L"Assets/Sonido/WAVES.xwb");
@@ -479,6 +522,9 @@ public:
 		billboard->Draw(camara->vista, camara->proyeccion, camara->posCam,
 			-11, -78, 10, 5, uv1, uv2, uv3, uv4, frameBillboard);
 
+		BIRD->Draw(camara->vista, camara->proyeccion, camara->posCam, 100, 0, 80, 1);
+		STAN->Draw(camara->vista, camara->proyeccion, camara->posCam, 0, 0, terreno->Superficie(0,0), 1);
+		NOMBRE->Draw(camara->vista, camara->proyeccion, camara->posCam, -115, -25, terreno->Superficie(-115,-15)+7, 1);
 
         // Por el siguiente bloque para dibujar 15 billboards (árboles) en posiciones distintas a los modelos:
         float billboardPositions[15][2] = {
@@ -496,9 +542,9 @@ public:
 		TurnOffAlphaBlending();
 		//model->Draw(camara->vista, camara->proyeccion, terreno->Superficie(100, 20), camara->posCam, 10.0f, 0, 'A', 1);
 
-        /*if (mostrarPantallaInicio) {
+        if (mostrarPantallaInicio) {
             pantallaInicio->Draw(-0.2f, 0.1f);
-        }*/
+        }
 
 		// En cada frame:
 		auto ahora = std::chrono::steady_clock::now();
@@ -506,31 +552,35 @@ public:
 
 		// Timer
 		int hpActual = 100;
-		if (tiempoTotal < 30.0f) {
-			hpActual = 100;
-			HP100->Draw(-0.7f, -0.45f);
-		}
-		else if (tiempoTotal < 60.0f) {
-			hpActual = 75;
-			HP75->Draw(-0.7f, -0.45f);
-		}
-		else if (tiempoTotal < 90.0f) {
-			hpActual = 50;
-			HP50->Draw(-0.7f, -0.45f);
-		}
-		else if (tiempoTotal < 120.0f) {
-			hpActual = 25;
-			HP25->Draw(-0.7f, -0.45f);
-		}
-		else {
-			if (tiempoTotal >= 120.0f && tiempoTotal <=125) {
-				hpActual = 0;
-				HP0->Draw(-0.7f, -0.45f);
+		if (!objFinal) { // Solo dibuja HP si no se ha cumplido el objetivo final
+			if (tiempoTotal < 30.0f) {
+				hpActual = 100;
+				HP100->Draw(-0.7f, -0.45f);
 			}
-			else if (tiempoTotal > 125.0f) {
-				pantallaGameOver->Draw(-0.2f, 0.1f);
+			else if (tiempoTotal < 60.0f) {
+				hpActual = 75;
+				HP75->Draw(-0.7f, -0.45f);
+			}
+			else if (tiempoTotal < 90.0f) {
+				hpActual = 50;
+				HP50->Draw(-0.7f, -0.45f);
+			}
+			else if (tiempoTotal < 120.0f) {
+				hpActual = 25;
+				HP25->Draw(-0.7f, -0.45f);
+			}
+			else {
+				if (tiempoTotal >= 120.0f && tiempoTotal <= 125) {
+					hpActual = 0;
+					HP0->Draw(-0.7f, -0.45f);
+				}
+				else if (tiempoTotal > 125.0f) {
+					pantallaGameOver->Draw(-0.2f, 0.1f);
+				}
 			}
 		}
+
+
 		if (hpActual != ultimoHP) {
 			if (Música.m_pSoundBank) {
 				XACTINDEX cueIndex = Música.m_pSoundBank->GetCueIndex("hit");
@@ -582,7 +632,7 @@ public:
 			camara->posCam = camara->camaraPosAnterior;
 		}
 
-		horse->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, caballo->posicion, 2.0f, 8, caballo->apunta, rotation);
+		horse->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, caballo->posicion, 2.0f, 8, caballo->apunta, -45);
 		if (escondeEspada == false) {
 			bronzeSword->DrawTPS(camara->vista, camara->proyeccion, camara->posCam, bronzeSwordCol->posicion, 2.0f, 5.0f, bronzeSwordCol->posicion, rotation);
 		}
@@ -599,8 +649,8 @@ public:
 
 
 		DrawObjectOnTerrain(fuente, 5.0f, 0, 'a', 10);
-		DrawObjectOnTerrain(casa1, 5.0f, -45, 'a', 10);
-		DrawObjectOnTerrain(casa2, 5.0f, 0, 'a', 10);
+		DrawObjectOnTerrain(casa1, 10.0f, -45, 'a', 10);
+		DrawObjectOnTerrain(casa2, 10.0f, 0, 'a', 10);
 		DrawObjectOnTerrain(ruins, 5.0f, 0, 'a', 10);
 		DrawObjectOnTerrain(tent, 5.0f, 90, 'a',10);
 		if (escondePlanta == false) {
@@ -627,9 +677,12 @@ public:
 		}
 
 
-		if (casa1Col->collider->isInside(camara->posCam)) {
-			camara->posCam = camara->camaraPosAnterior;
-		}
+        if (casa1Col->collider->isInside(camara->posCam)) {
+        // Si ya se completaron los objetivos 1, 2 y 3, se cumple el objetivo 4
+        if (obj1 && obj2 && obj3) {
+        obj4 = true;
+        }
+        }
 		if (casa2Col->collider->isInside(camara->posCam)) {
 			camara->posCam = camara->camaraPosAnterior;
 		}
@@ -683,7 +736,7 @@ public:
 		if (colRuins) {
 			camara->posCam = camara->camaraPosAnterior;
 		}
-		if (objP1 == true && colRuins) {
+		if (dibujaEspada == true && colRuins) {
 			obj1 = true;
 		}
 
@@ -701,6 +754,22 @@ public:
 			camara->posCam = camara->camaraPosAnterior;
 		}
 		
+		if (Pared->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (Pared2->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (Pared3->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (Pared4->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+		if (Pared5->collider->isInside(camara->posCam)) {
+			camara->posCam = camara->camaraPosAnterior;
+		}
+
 
 		rotation = rotation + 0.1f;
 		swapChain->Present( 1, 0 );
